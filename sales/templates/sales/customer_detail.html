@@ -1,0 +1,33 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<h3>Customer: {{object.name}}</h3>
+<h3>code: {{object.code}}</h3>
+<h3>Sales Channel: {{object.sales_channel}}</h3>
+<div>
+    {% if not object.include_in_channel_planning %}
+        <div class="alert alert-danger" role="alert">This customer is not included in sales channel planning</div>
+    {% endif %}
+    {% if object.include_in_channel_planning %}
+        <a class="btn btn-primary" href="{% url 'sales:plan-types-assign' pk=object.code%}">Assign new plans</a>
+    {% endif %}
+</div>
+<table class="table" style="text-align: center;">
+    <thead>
+        <th>Assigned Plans</th>
+        <th>Activate Plans</th>
+    </thead>
+    <tbody>
+        {% for plan in object.customerplantype_set.all %}
+        <tr>
+            <td>{{plan.plan_type}}</td>
+            <td><a href="{% url 'sales:create-sales-plans' pk=plan.id%}">Activate Plans</a></td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+   
+</table>
+
+
+{% endblock content %}

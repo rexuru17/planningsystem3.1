@@ -1,0 +1,27 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<table class="table" style="text-align: center;">
+    {% csrf_token %}
+    <thead>
+      <tr >
+        <th>Product SubGroup</th>
+        <th>Details</th>
+        <th>Edit</th>
+        <th>Delete</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+        {% for object in object_list %}
+            <tr>
+                <th>{{object}}</th>
+                <td><a href="{% url 'products:detail-product-subgroup' object.id %}">Details</a></td>
+                <td><a href="{% url 'products:update-product-subgroup' object.id %}">Edit</a></td>
+                <td><a href="{% url 'products:delete-product-subgroup' object.id %}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+
+  {% endblock content %}

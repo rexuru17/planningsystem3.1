@@ -1,0 +1,15 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<h3>Customer: {{object.customer}}</h3>
+<h3>Plan: {{object.plan_type}}</h3>
+
+<table class="table" style="text-align: center;">
+
+        {{object}}
+   
+        
+</table>
+
+
+{% endblock content %}

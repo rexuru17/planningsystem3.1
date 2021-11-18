@@ -1,0 +1,40 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content%}
+<div class="row">
+	<div class="col">
+		<div class="card card-body">
+			<form method="get">
+				{{myFilter.form.as_p}}
+		    <button class="btn btn-primary" type="submit">Search</button>
+		  </form>
+		</div>
+	</div>
+<div>
+    <table class="table" style="text-align: left;">
+        <thead>
+            <th>Date</th>
+            <th>product code</th>
+            <th>product name</th>
+            <th>quantity</th>
+        </thead>
+        <tbody>
+            {% for records in sales_records %}
+            <tr>
+             <td>{{records.date}}</td>
+             <td>{{records.product.code}}</td>
+             <td>{{records.product.name}}</td>
+             <td>{{records.quantity}}</td>
+
+            </tr>
+
+            
+                {% endfor %}
+        </tbody>
+        
+    </table>
+   
+</div>
+</div>
+
+{% endblock content%}

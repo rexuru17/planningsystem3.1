@@ -1,0 +1,20 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h3>Customer: {{customer}}</h3>
+<hr>
+<div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            {{form.as_p}}
+            <hr>
+        {% endfor %}
+        <input type="submit" value="Assign">
+    </form>
+</div>
+
+
+{% endblock content %}

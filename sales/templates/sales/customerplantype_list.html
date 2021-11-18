@@ -1,0 +1,28 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<table class="table" style="text-align: center;">
+    {% csrf_token %}
+    <thead>
+      <tr >
+        <th>Customer</th>        
+        <th>Plan Type</th>        
+        <th>Details</th>
+        <th>Edit</th>
+        <th>Delete</th>        
+      </tr>
+    </thead>
+    <tbody>
+        {% for object in object_list %}
+            <tr>
+              <th>{{object.customer}}</th>
+              <th>{{object.plan_type}}</th>
+                <td><a href="{% url 'sales:customer-plan-type-detail' object.id %}">Details</a></td>
+                <td><a href="{% url 'sales:customer-plan-type-update' object.id %}">Edit</a></td>
+                <td><a href="{% url 'sales:customer-plan-type-delete' object.id %}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+
+  {% endblock content %}

@@ -1,0 +1,36 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div>
+    <h3>
+       {{customer}} - {{sales_plan.cpt.plan_type}} for {{period}}
+    </h3>
+</div>
+<form method="POST" action="">
+    {% csrf_token %}
+    
+    {{formset.management_form}}
+   
+    <table class="table-sm">
+    
+        <thead>
+            <th></th>
+            <th></th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>3 Year Avg Sales for period</th>
+        </thead>
+        <tbody>
+            {% for form in formset.forms %}
+                <tr>
+                    {% for field in form %}
+                        <td>{{field}}</td>
+                    {% endfor %}  
+                </tr>
+                
+            {% endfor %}
+        </tbody>
+    </table>
+    <input class="btn btn-primary" type="submit", value="Submit">
+</form>
+{% endblock content %}

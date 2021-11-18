@@ -1,0 +1,15 @@
+{% extends 'dashboard/base.html' %}
+
+
+{% block content %}
+<div>
+    <h2>Select a CSV file to upload sales records from</h2>
+</div>
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+
+
+{% endblock content %}

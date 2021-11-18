@@ -1,0 +1,32 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+{{cpt}}
+<hr>
+<form method="POST" action="">
+    {% csrf_token %}
+    
+    {{ formset.management_form }}
+    <table>
+        <thead>
+            <th>Customer Plan</th>
+            <th>Period</th>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+                
+                <tr>
+                    {% for field in form %}
+                    
+                    <td>{{field}}</td>
+                    {% endfor %}
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button class="btn btn-primary" type="submit">Assign</button>
+</form>
+
+{% endblock content%}
+

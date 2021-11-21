@@ -109,20 +109,21 @@ class CustomerPlanType(models.Model):
 
 class SalesPlan(models.Model):
     cpt = models.ForeignKey(CustomerPlanType, on_delete=models.CASCADE, verbose_name="Customer Plan")
-    period = models.DateField(blank=True, null=True)
+    period_start = models.DateField(blank=True, null=True)
+    period_end = models.DateField(blank=True, null=True)
 
     
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['period', 'cpt'], name='%(app_label)s_%(class)s_is_unique'),
+            models.UniqueConstraint(fields=['period_start', 'cpt'], name='%(app_label)s_%(class)s_is_unique'),
         ]
            
 
     def __str__(self):
         if self.cpt.plan_type.name == "BUDGET":
-            info = str(self.cpt) + ' - ' + str(self.period.strftime('%B'))
+            info = str(self.cpt) + ' - ' + str(self.period_start.strftime('%B'))
         elif self.cpt.plan_type.name == "FORECAST":
-            info = str(self.cpt) + ' - ' + str(self.period.strftime('%B')) + ' - Week ' + str(self.period.isocalendar().week)
+            info = str(self.cpt) + ' - ' + str(self.period_start.strftime('%B')) + ' - Week ' + str(self.period_start.isocalendar().week)
         else:
             pass
         return str(info)
@@ -143,20 +144,31 @@ class PlanItem(models.Model):
 
     @property
     def previous_qty(self):
-        period = self.sales_plan.period
+        period_start = self.sales_plan.period_start
+        period_end = self.sales_plan.period_end
         year = self.sales_plan.cpt.plan_type.year
         customer = self.sales_plan.cpt.customer
         sales_channel = customer.sales_channel
         if sales_channel.customer_set.filter(include_in_channel_planning=True).count() == 1:
-            if self.sales_plan.cpt.plan_type.name == "BUDGET":
-                records = SalesRecords.objects.filter(customer__sales_channel=self.sales_plan.cpt.customer.sales_channel, product=self.product, date__month=period.month, date__year__range=((year-3), (year-1))).aggregate(Sum('quantity'))
-            elif self.sales_plan.cpt.plan_type.name == "FORECAST":
-                records = SalesRecords.objects.filter(customer__sales_channel=self.sales_plan.cpt.customer.sales_channel, product=self.product, date__week=period.isocalendar().week, date__year__range=((year-3), (year-1))).aggregate(Sum('quantity'))
-        else:    
-            if self.sales_plan.cpt.plan_type.name == "BUDGET":
-                records = SalesRecords.objects.filter(customer=self.sales_plan.cpt.customer, product=self.product, date__month=period.month, date__year__range=((year-3), (year-1))).aggregate(Sum('quantity'))
-            elif self.sales_plan.cpt.plan_type.name == "FORECAST":
-                records = SalesRecords.objects.filter(customer=self.sales_plan.cpt.customer, product=self.product, date__week=period.isocalendar().week, date__year__range=((year-3), (year-1))).aggregate(Sum('quantity'))
+            records = SalesRecords.objects.filter(
+                customer__sales_channel=self.sales_plan.cpt.customer.sales_channel,
+                product=self.product,
+                date__month__gte=period_start.month,
+                date__day__gte=period_start.day,
+                date__month__lte=period_end.month,
+                date__day__lte=period_end.day,
+                date__year__range=((year-3), (year-1))
+                ).aggregate(Sum('quantity'))
+        else:
+            records = SalesRecords.objects.filter(
+                customer=self.sales_plan.cpt.customer,
+                product=self.product,
+                date__month__gte=period_start.month,
+                date__day__gte=period_start.day,
+                date__month__lte=period_end.month,
+                date__day__lte=period_end.day,
+                date__year__range=((year-3), (year-1))
+                ).aggregate(Sum('quantity'))
         if records['quantity__sum']:
             return('{:.2f}'.format(float(records['quantity__sum']/3)))
         else:

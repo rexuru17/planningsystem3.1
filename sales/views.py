@@ -157,6 +157,8 @@ class SalesPlanDetailView(DetailView):
 
 class SalesPlanListView(ListView):
     model = SalesPlan
+    paginate_by = 100
+
 
 
 class SalesPlanUpdateView(UpdateView):
@@ -184,6 +186,7 @@ class PlanItemDetailView(DetailView):
 
 class PlanItemListView(ListView):
     model = PlanItem
+    paginate_by = 100
 
 
 class PlanItemUpdateView(UpdateView):
@@ -220,9 +223,9 @@ def sales_plans_lookup(request, pk):
     plans = customer.salesplan_set.all()
     myFilter = SalesPlanFilter(request.GET, queryset=plans)
     plans = myFilter.qs
-    x = plans.values('planitem__product__code', 'planitem__product__name', 'planitem__quantity', 'customer__name', 'plan_type__name', 'period')
+    x = plans.values('planitem__product__code', 'planitem__product__name', 'planitem__quantity', 'customer__name', 'plan_type__name', 'period_start')
     df = pd.DataFrame(x)
-    pivot = df.pivot_table(index=['planitem__product__code', 'planitem__product__name'], columns=['period'], values='planitem__quantity', aggfunc=sum)
+    pivot = df.pivot_table(index=['planitem__product__code', 'planitem__product__name'], columns=['period_start'], values='planitem__quantity', aggfunc=sum)
     context = {
         'customer': customer,
         'plans': plans,
@@ -263,13 +266,10 @@ def create_sales_plans(request, pk):
     form = SalesPlanForm()
     if cpt.plan_type.name == "BUDGET":
         for month in range(1, 13):
-            if month < 10:
-                month = '0' + str(month)
-            else:
-                month = str(month)
             initial.append({
                 'cpt': cpt,
-                'period': (str(cpt.plan_type.year) + '-' + month + '-01')
+                'period_start': datetime.date(cpt.plan_type.year, month, 1),
+                'period_end': datetime.date(cpt.plan_type.year, month, calendar.monthrange(cpt.plan_type.year, month)[1]),
 
             })
     elif cpt.plan_type.name == "FORECAST":
@@ -277,16 +277,27 @@ def create_sales_plans(request, pk):
         weeks = len(calendar.monthcalendar(cpt.plan_type.year, month))
         day = 1
         for week in range(1, weeks+1):
-            if day < 10:
-                day = '0' + str(day)
-            else:
-                day = str(day)
-            initial.append({
-                'cpt':cpt,
-                'period': (str(cpt.plan_type.year) + '-' + str(month) + f"-{day}")
-            })
-            day = int(day)
-            day +=7
+            if day in range(1, calendar.monthrange(cpt.plan_type.year, month)[1]+1):
+                start_of_week = datetime.date(cpt.plan_type.year, month, day) - datetime.timedelta(days=datetime.date(cpt.plan_type.year, month, day).weekday())
+                end_of_week = start_of_week + datetime.timedelta(days=6)
+                if day == 1:
+                    start_date = datetime.date(cpt.plan_type.year, month, day)
+                else:
+                    start_date = start_of_week
+                if end_of_week.month == month:
+                    end_date = end_of_week
+                else:
+                    end_date = datetime.date(cpt.plan_type.year, month, calendar.monthrange(cpt.plan_type.year, month)[1])
+                if start_date.weekday() != 6:
+                    initial.append({
+                        'cpt':cpt,
+                        'period_start': start_date,
+                        'period_end': end_date,
+                    
+                    })
+                else:
+                    pass
+            day = end_date.day + 1
     else:
         pass
     SalesPlanFormSet = formset_factory(SalesPlanForm, extra=0)
@@ -305,7 +316,7 @@ def create_sales_plans(request, pk):
 
 def generate_plan_items(request, pk):
     sales_plan = get_object_or_404(SalesPlan, id=pk)
-    period = sales_plan.period.strftime('%B')
+    period = sales_plan.period_start.strftime('%B')
     customer = sales_plan.cpt.customer
     portfolio = customer.portfolio.all()
     initial = []

@@ -1,32 +1,53 @@
 {% extends 'dashboard/base.html' %}
 
 {% block content %}
-<table class="table" style="text-align: center;">
-    {% csrf_token %}
-    <thead>
-      <tr >
-        <th>Sales Plan</th>        
-        <th>Code</th>        
-        <th>Name</th>  
-        <th>Quantity</th>      
-        <th>Details</th>
-        <th>Edit</th>
-        <th>Delete</th>        
-      </tr>
-    </thead>
-    <tbody>
-        {% for object in object_list %}
-            <tr>
-              <th>{{object.sales_plan}}</th>
-              <th>{{object.product.code}}</th>
-              <td>{{object.product.name}}</td>
-              <td>{{object.quantity}}</td>
-                <td><a href="{% url 'sales:planitem-detail' object.id %}">Details</a></td>
-                <td><a href="{% url 'sales:planitem-update' object.id %}">Edit</a></td>
-                <td><a href="{% url 'sales:planitem-delete' object.id %}">Delete</a></td>
-            </tr>
-        {% endfor %}
-    </tbody>
-  </table>
+
+  <div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+         <div>
+          <table class="table" style="text-align: center;">
+            {% csrf_token %}
+            <thead>
+              <tr >
+                <th>Sales Plan</th>        
+                <th>Code</th>        
+                <th>Name</th>  
+                <th>Quantity</th>      
+                <th>Details</th>
+                <th>Edit</th>
+                <th>Delete</th>        
+              </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                    <tr>
+                      <th>{{object.sales_plan}}</th>
+                      <th>{{object.product.code}}</th>
+                      <td>{{object.product.name}}</td>
+                      <td>{{object.quantity}}</td>
+                        <td><a href="{% url 'sales:planitem-detail' object.id %}">Details</a></td>
+                        <td><a href="{% url 'sales:planitem-update' object.id %}">Edit</a></td>
+                        <td><a href="{% url 'sales:planitem-delete' object.id %}">Delete</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+         </div>
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
 
   {% endblock content %}

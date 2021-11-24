@@ -1,0 +1,15 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<form class="mb-3 mt-3" action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit">Search</button>
+</form>
+
+{% if sales_df %}
+    {{sales_df|safe}}
+{% endif %}
+
+{% endblock content %}

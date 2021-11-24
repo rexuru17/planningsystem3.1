@@ -12,23 +12,29 @@ from sales.utils import upload_records
 import pandas as pd
 import datetime
 import calendar
+from django.apps import apps
 # Create your views here.
 
 
 ########### Upload Data Views ######################
 def upload_data_view(request):
     form = UploadDataForm(request.POST or None, request.FILES or None)
-    
+    data_models = apps.get_models()
     if form.is_valid():
         form.save()
-        form = UploadDataForm()
+        form = UploadDataForm() #reset the form
         obj = UploadData.objects.get(activated=False)
         file_path = obj.file_name.path
-        upload_records(file_path=file_path)
+        df = pd.read_csv(file_path)
+        names = list(df.columns)
+        """
+        Should remake completely, to make it possible to read any csv file and save to any model from database
+        """
         obj.activated = True
         obj.save()
     context = {
         'form': form,
+        'data_models': data_models,
     }
     return render(request, 'sales/upload.html', context)
 

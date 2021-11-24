@@ -150,6 +150,7 @@ class PlanItem(models.Model):
         customer = self.sales_plan.cpt.customer
         sales_channel = customer.sales_channel
         if sales_channel.customer_set.filter(include_in_channel_planning=True).count() == 1:
+            # For customers used for sales channel planning
             records = SalesRecords.objects.filter(
                 customer__sales_channel=self.sales_plan.cpt.customer.sales_channel,
                 product=self.product,
@@ -160,6 +161,7 @@ class PlanItem(models.Model):
                 date__year__range=((year-3), (year-1))
                 ).aggregate(Sum('quantity'))
         else:
+            # for individual customers planning
             records = SalesRecords.objects.filter(
                 customer=self.sales_plan.cpt.customer,
                 product=self.product,

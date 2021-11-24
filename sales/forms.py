@@ -19,9 +19,7 @@ class SalesPlanForm(forms.ModelForm):
             'period_end': forms.DateInput(attrs={'type': 'date'}),
         }
 
-"""
-THIS CLASS SHOULD WORK FOR PREFILLED PRODUCTS
-"""
+
 class PlanItemForm(forms.ModelForm):
     previous_qty = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly'}))
     display_product = forms.CharField(widget = forms.TextInput(attrs={'readonly':'readonly', 'size':'50'}))

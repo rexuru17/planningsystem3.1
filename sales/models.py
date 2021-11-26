@@ -1,9 +1,11 @@
 from django.db import models
+from django.shortcuts import get_object_or_404
 from products.models import *
 from django.db.models import Sum, Avg, Max, Min, constraints
 from django.urls import reverse
 import calendar
 import datetime
+import numpy as np
 
 
 
@@ -175,6 +177,32 @@ class PlanItem(models.Model):
             return('{:.2f}'.format(float(records['quantity__sum']/3)))
         else:
             return 0
+
+    @property
+    def get_budget_qty(self):
+        period_start = self.sales_plan.period_start
+        customer = self.sales_plan.cpt.customer
+        sales_channel = customer.sales_channel
+        if sales_channel.customer_set.filter(include_in_channel_planning=True).count() == 1:
+            budget_plan = PlanItem.objects.filter(sales_plan__cpt__customer__sales_channel=customer.sales_channel,
+                                                sales_plan__period_start__month=period_start.month,
+                                                sales_plan__period_start__year=period_start.year,
+                                                product=self.product,
+                                                sales_plan__cpt__plan_type__name="BUDGET")
+        else:  
+            budget_plan = PlanItem.objects.filter(sales_plan__cpt__customer=customer,
+                                                sales_plan__period_start__month=period_start.month,
+                                                sales_plan__period_start__year=period_start.year,
+                                                product=self.product,
+                                                sales_plan__cpt__plan_type__name="BUDGET")
+        # np.busday counts business days, weekmask is to set which days are counted. we add one to include last date in count
+        days = np.busday_count(budget_plan[0].sales_plan.period_start, budget_plan[0].sales_plan.period_end+datetime.timedelta(days=1), weekmask=[1,1,1,1,1,1,0])
+        daily_qty = budget_plan.aggregate(Sum('quantity'))['quantity__sum']/days
+        plan_days = np.busday_count(self.sales_plan.period_start, self.sales_plan.period_end+datetime.timedelta(days=1), weekmask=[1,1,1,1,1,1,0])
+        plan_qty = daily_qty*plan_days
+        return ('{:.2f}'.format(float(plan_qty)))
+
+
 
     def __str__(self):
         info = str(self.sales_plan) + ' - ' + str(self.product)

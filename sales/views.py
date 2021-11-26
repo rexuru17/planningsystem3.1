@@ -327,10 +327,14 @@ def generate_plan_items(request, pk):
     portfolio = customer.portfolio.all()
     initial = []
     for item in portfolio:
+        if sales_plan.cpt.plan_type.name == "FORECAST":
+            quantity = PlanItem(sales_plan=sales_plan, product=item).get_budget_qty
+        else:
+            quantity = PlanItem(sales_plan=sales_plan, product=item).previous_qty
         initial.append({
             'sales_plan': sales_plan,
             'product': item,
-            'quantity': 0,
+            'quantity': quantity,
             'previous_qty': PlanItem(sales_plan=sales_plan, product=item).previous_qty,
             'display_product':Product.objects.get(code=item.code)
         })

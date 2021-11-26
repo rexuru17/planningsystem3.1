@@ -116,3 +116,24 @@ def create_sales_plans(customer_id):
         for item in portfolio:
             budget_items.append(PlanItem(sales_plan=SalesPlan.objects.get(id=salesplan.id), product=item, quantity=PlanItem(sales_plan=salesplan, product=item).previous_qty))
     PlanItem.objects.bulk_create(budget_items)
+
+
+
+"""
+This function generates FC plans according to budget plans, and budget plans according to 3 year previous average sales quantity
+"""
+def generate_plan_items(sales_plan):
+    sales_plan = sales_plan
+    customer = sales_plan.cpt.customer
+    portfolio = customer.portfolio.all()
+    initial = []
+    for item in portfolio:
+        if sales_plan.cpt.plan_type.name == "FORECAST":
+            quantity = PlanItem(sales_plan=sales_plan, product=item).get_budget_qty
+        else:
+            quantity = PlanItem(sales_plan=sales_plan, product=item).previous_qty
+        initial.append(PlanItem(sales_plan=sales_plan,
+                                product=item,
+                                quantity=quantity,
+                                ))
+    PlanItem.objects.bulk_create(initial)
